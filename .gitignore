@@ -142,6 +142,11 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Terraforms
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
