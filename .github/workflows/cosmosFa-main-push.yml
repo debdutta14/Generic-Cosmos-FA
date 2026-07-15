@@ -27,6 +27,10 @@ jobs:
           with:
             name: cosmosfunctionapp
             path: ./publish
+        - name: Inspect Published Files
+          run: |
+            echo "===== Publish ====="
+            ls -R ./publish
     terraform:
         needs: build-and-test
         name: Terraform Build
@@ -72,6 +76,10 @@ jobs:
             with:
               name: cosmosfunctionapp
               path: ./publish
+          - name: Inspect Downloaded Files
+            run: |
+              echo "===== Download ====="
+              ls -R ./publish
           - name: Azure Login 
             uses: azure/login@v2
             with:
