@@ -142,6 +142,11 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Terraforms
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
@@ -263,3 +268,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Credential files
+credential.json

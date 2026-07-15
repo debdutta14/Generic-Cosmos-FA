@@ -1,0 +1,85 @@
+name: Generic Cosmos FA Main Workflow
+
+on:
+    push:
+        branches: [ main ]
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Repository Checkout
+          uses: actions/checkout@v4
+        - name: Set-up Dotnet
+          uses: actions/setup-dotnet@v5
+          with:
+            dotnet-version: '10.0.x'
+            cache: true
+        - name: Install Dependencies
+          run: dotnet restore
+        - name: Build
+          run: dotnet build --configuration Release --no-restore
+        - name: Test
+          run: dotnet test --configuration Release --no-build --verbosity minimal
+        - name: Publish
+          run: dotnet publish CIS_Cosmos_Integration.csproj --configuration Release --output ./publish
+        - name: Upload Publish Folder
+          uses: actions/upload-artifact@v4
+          with:
+            name: cosmosfunctionapp
+            path: ./publish
+    terraform:
+        needs: build-and-test
+        name: Terraform Build
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write
+          contents: read
+        steps:       
+          - name: Repository Checkout
+            uses: actions/checkout@v4
+          - name: Azure Login 
+            uses: azure/login@v2
+            with:
+              client-id: ${{ vars.AZURE_CLIENT_ID }}
+              tenant-id: ${{ vars.AZURE_TENANT_ID }}
+              subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          - name: Set-up Terraform
+            uses: hashicorp/setup-terraform@v4
+          - name: Terraform Format
+            working-directory: ./Terraform
+            run: terraform fmt
+          - name: Terraform Init
+            working-directory: ./Terraform
+            run: terraform init
+          - name: Terraform validate
+            working-directory: ./Terraform
+            run: terraform validate
+          - name: Save Terraform Plan
+            working-directory: ./Terraform
+            run: terraform plan -out=tfplan.binary
+          - name: Terraform Apply
+            working-directory: ./Terraform
+            run: terraform apply -auto-approve tfplan.binary
+    deploy:
+        needs: terraform
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write
+          contents: read
+        steps:
+          - name: Download Published Artifact
+            uses: actions/download-artifact@v4
+            with:
+              name: cosmosfunctionapp
+              path: ./publish
+          - name: Azure Login 
+            uses: azure/login@v2
+            with:
+              client-id: ${{ vars.AZURE_CLIENT_ID }}
+              tenant-id: ${{ vars.AZURE_TENANT_ID }}
+              subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }} 
+          - name: Deploy Azure Function
+            uses: Azure/functions-action@v1
+            with: 
+              app-name: fa-generic-cosmosdb-001
+              package: ./publish

@@ -18,6 +18,7 @@ namespace CosmosUpdater.Functions
         private readonly string databaseId;
         private readonly string containerId;
 
+
         private static readonly HashSet<string> AllowedFields = new HashSet<string>(
         typeof(Price_Product_DTO).GetProperties()
         .Select(p => p.Name)
