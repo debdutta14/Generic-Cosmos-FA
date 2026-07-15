@@ -11,9 +11,9 @@ terraform {
     container_name       = "ailearning"
     key                  = "cosmosdb-fa-development.terraform.tfstate"
 
-    # Crucial settings for OIDC state management
-    use_oidc             = true
-    use_azuread_auth     = true
+    # # Crucial settings for OIDC state management
+    # use_oidc             = true
+    # use_azuread_auth     = true
   }
   required_version = ">= 1.15.6"
 }
@@ -125,7 +125,7 @@ resource "azurerm_linux_function_app" "funcapp-cosmosdb-fa" {
 
   site_config {
     application_stack {
-      dotnet_version = "10.0"
+      dotnet_version = "8.0"
       use_dotnet_isolated_runtime = true
     }
   }
