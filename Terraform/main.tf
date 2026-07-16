@@ -1,32 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = {
-        source = "hashicorp/azurerm"
-        version = "~> 4.78.0"
-    }
-  }
-  backend "azurerm" {
-    resource_group_name  = "rg-pl-a-001"
-    storage_account_name = "ailearningstorageacnt"
-    container_name       = "ailearning"
-    key                  = "cosmosdb-fa-development.terraform.tfstate"
-
-    # # Crucial settings for OIDC state management
-    # use_oidc             = true
-    # use_azuread_auth     = true
-  }
-  required_version = ">= 1.15.6"
-}
-
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = true
-      recover_soft_deleted_key_vaults = false
-    }
-  }
-}
-
 data "azurerm_resource_group" "rg-cosmosdb-fa" {
   name     = "rg-pl-a-001"
 }
@@ -132,5 +103,7 @@ resource "azurerm_linux_function_app" "funcapp-cosmosdb-fa" {
   app_settings = {
     //"CosmosDBConnectionString" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.kv-secret-cosmosdb-connection-string.id})"
     "CosmosDBConnectionString" = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv-main-dev-deb-001.name};SecretName=${azurerm_key_vault_secret.kv-secret-cosmosdb-connection-string.name})"
+    "CosmosDatabaseName": "price-product-cis"
+    "CosmosContainerName": "price-product-cis-container"
   }
 }
