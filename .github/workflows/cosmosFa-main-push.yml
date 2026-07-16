@@ -27,6 +27,7 @@ jobs:
           with:
             name: cosmosfunctionapp
             path: ./publish
+            include-hidden-files: true
         - name: Inspect Published Files
           run: |
             echo "===== Publish ====="
