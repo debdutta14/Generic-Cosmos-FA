@@ -102,8 +102,8 @@ resource "azurerm_linux_function_app" "funcapp-cosmosdb-fa" {
   }
   app_settings = {
     //"CosmosDBConnectionString" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.kv-secret-cosmosdb-connection-string.id})"
-    "CosmosDBConnectionString" = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv-main-dev-deb-001.name};SecretName=${azurerm_key_vault_secret.kv-secret-cosmosdb-connection-string.name})"
-    "CosmosDatabaseName": "price-product-cis"
-    "CosmosContainerName": "price-product-cis-container"
+    "CosmosDbConnectionString" = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv-main-dev-deb-001.name};SecretName=${azurerm_key_vault_secret.kv-secret-cosmosdb-connection-string.name})"
+    "CosmosDbDatabaseName": "price-product-cis"
+    "CosmosDbContainerName": "price-product-cis-container"
   }
 }
