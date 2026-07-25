@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CosmosUpdater.Models;
 using Microsoft.Extensions.Configuration;
+using CosmosUpdater.HelperClass;
 
 namespace CosmosUpdater.Functions
 {
@@ -17,6 +18,7 @@ namespace CosmosUpdater.Functions
         private readonly ILogger _logger;
         private readonly string databaseId;
         private readonly string containerId;
+        private readonly DependedQuery _dependedQueryFactory;
 
 
         private static readonly HashSet<string> AllowedFields = new HashSet<string>(
@@ -33,16 +35,17 @@ namespace CosmosUpdater.Functions
             .Where(name => name == "id" || name.StartsWith("_") || name == "recordType" || name == "sku" || name == "storeId"),
             StringComparer.Ordinal);
 
-        public GenericCosmosFetchFA(CosmosClient cosmosClient, ILoggerFactory loggerFactory, IConfiguration configuration)
+        public GenericCosmosFetchFA(CosmosClient cosmosClient, ILoggerFactory loggerFactory, IConfiguration configuration, DependedQuery dependedQueryFactory)
         {
             _cosmosClient = cosmosClient;
             _logger = loggerFactory.CreateLogger<GenericCosmosFetchFA>();
             databaseId = configuration["CosmosDbDatabaseName"]!;
             containerId = configuration["CosmosDbContainerName"]!;
+            _dependedQueryFactory = dependedQueryFactory;
         }
 
         [Function("UpdateCosmosRecords")]
-        public async Task<HttpResponseData> Run(
+        public async Task<HttpResponseData> RunGenericCosmosFA(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             _logger.LogInformation("Processing Cosmos Generic FA.");
@@ -89,7 +92,7 @@ namespace CosmosUpdater.Functions
                 return badRequest;
             }
 
-    
+
             var container = _cosmosClient.GetContainer(databaseId, containerId);
 
             var queryDefinition = new QueryDefinition(payload.Query);
@@ -122,11 +125,24 @@ namespace CosmosUpdater.Functions
             foreach (var document in documentsToUpdate)
             {
                 var jDoc = JObject.FromObject(document);
+                _logger.LogInformation("Depended value: {IncludeDependedQuery}", payload.IncludeDependedQuery);
+                if (payload.IncludeDependedQuery)
+                {
+                    var dependedResult = await _dependedQueryFactory.ExecuteDependedQueryAsync(jDoc);
+                    if (dependedResult)
+                    {
+                        _logger.LogWarning("Depended query returned results for document SKU: {SKU}. No updates will be made.", document.sku);
+                        continue;
+                    }
+                }
 
                 foreach (var change in payload.RequiredChange)
                 {
                     jDoc[change.Key] = JToken.FromObject(change.Value);
                 }
+
+                jDoc["timestamp"] = JToken.FromObject(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                //_logger.LogInformation("Epoch Timestamp set to: {Timestamp}", jDoc["timestamp"].ToString());
 
                 var updatedDocument = jDoc.ToObject<Price_Product_DTO>();
 

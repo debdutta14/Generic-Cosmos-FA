@@ -6,6 +6,7 @@ namespace CosmosUpdater.Models
     {
         public required string Query { get; set; }
         public int Limit { get; set; } = 100; 
+        public bool IncludeDependedQuery { get; set; } = false;
         public required Dictionary<string, object> RequiredChange { get; set; }
     }
 }

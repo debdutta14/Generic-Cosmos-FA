@@ -2,6 +2,7 @@ Request-Body:
 {
 "query":"<Cosmos Query>",
 "limit":500, //Number of records it should change
+"includeDependedQuery": true, //Default Value: False. Use When there is pre-condition to check.
 "requiredChange":
 	{
 		"<field-name1>": "<field-value1>",

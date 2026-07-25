@@ -1,6 +1,7 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using CosmosUpdater.HelperClass;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -19,6 +20,7 @@ var host = new HostBuilder()
 
             return new CosmosClient(connectionString, options);
         });
+        services.AddSingleton<DependedQuery>();
     })
     .Build();
 
